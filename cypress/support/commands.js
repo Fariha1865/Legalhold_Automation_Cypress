@@ -1,5 +1,5 @@
 // ***********************************************
-import selectors from "../support/selectors/Login.js";
+import selectors from "./selectors/LoginSelectors.js";
 import values from "../support/Values.js";
 
 // providing username and password to login(with handling active sessions
