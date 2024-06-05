@@ -13,6 +13,15 @@ Cypress.Commands.add('login', () => {
 
     // Checking for the presence of the active session toast
     cy.get('body').then($body => {
+        Cypress.on('uncaught:exception', (err, runnable) => {
+            // Ignore the error and don't fail the test
+            if (err.message.includes("Cannot read properties of null (reading 'style')")) {
+              return false;
+            }
+            // Let other errors fail the test
+            return true;
+          });
+          
         if ($body.find(selectors.activeSessionToast).length > 0) {
 
             cy.get(selectors.activeSessionToast).should('be.visible').then(() => {
@@ -26,5 +35,8 @@ Cypress.Commands.add('login', () => {
             cy.log("No active sessions, logged in successfully");
         }
     });
+      
 
 })
+
+

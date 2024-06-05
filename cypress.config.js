@@ -6,6 +6,13 @@ module.exports = defineConfig({
 
       // implement node event listeners here
     },
-    specPattern: 'cypress/integration/examples/*.js'
+
+    specPattern: 'cypress/integration/examples/*.js',
+    experimentalSessionAndOrigin: true,
+    preserveCookies: true,
+    pageLoadTimeout: 12000,
+    baseUrl: 'https://legalholdpt.consilio.com/Case'
+
   },
+  
 });
