@@ -11,7 +11,8 @@ module.exports = defineConfig({
     experimentalSessionAndOrigin: true,
     preserveCookies: true,
     pageLoadTimeout: 12000,
-    baseUrl: 'https://legalholdpt.consilio.com/Case'
+    baseUrl: 'https://legalholdpt.consilio.com/Case',
+    testIsolation:false
 
   },
   
