@@ -1,37 +1,54 @@
 /// <reference types="cypress"/>
-import selectors from "../../support/selectors/LoginSelectors.js";
-import impersonationSelectors from "../../support/selectors/impersonation/Impersonation.js";
-import sharedSelectors from "../../support/selectors/shared/SharedSelectors.js";
-import values from "../../support/Values.js";
 import 'cypress-data-session';
+import SharedSelectors from '../PageObjects/SharedSelectors';
+import CasePage from '../PageObjects/CasePage';
+import TemplatePage from '../PageObjects/TemplatePage';
 
 describe('Consilio Tests', () => {
+
+    let values;
+
+    before(() => {
+        cy.fixture("values").then((loadedValues) => {
+            values = loadedValues
+
+        })
+    })
     // Set up the session once before all tests
     beforeEach(() => {
+
+        Cypress.config('pageLoadTimeout', 15000)
         cy.session('login', () => {
-            cy.login();
-            cy.navigateToLegalHold()
+            cy.login(values);
+            cy.navigateToLegalHold(values)
         });
     });
 
-        it('Maintain session and perform actions on Case page', () => {
-           
-                cy.visit('/');  // Visiting the page as part of the test
-                cy.wait(2000);
-                cy.url().should('include', values.legalHoldLandingPageUrl);
-                cy.get('#btnCreateCase').click();
+    it('Maintain session and perform actions on Case page', () => {
 
-                // cy.get("button[aria-label='Cancel Button']").click({force:true})
-                cy.get('#CreateCaseFormId > .modal-footer > .btn-white').click({force:true})
-                cy.get('.menu-item').eq(2).click()
-                // Add additional validations as needed
-           
-        });
+        const sharedSelectors = new SharedSelectors();
+        const casePage = new CasePage();
+        
 
-        it('template',()=>{
-            cy.visit('https://legalholdpt.consilio.com/Template')
-            cy.wait(5000)
-            cy.get('#add-new-template-btn').click()
-        })
+        cy.visit('/');  // Visiting the page as part of the test
+        cy.wait(2000);
+        cy.url().should('include', values.legalHoldLandingPageUrl);
+        sharedSelectors.getPageHeader().should('contain.text', values.legalHoldLandingPageHeader)
+        casePage.getCreateCaseButton().click();
+
+        //cy.get("button[aria-label='Cancel Button']").click({force:true})
+        cy.reload()
+        sharedSelectors.getMenubarItems().eq(2).click()
+   
+
     });
+
+    it('template', () => {
+        const templatePage = new TemplatePage();
+        
+        cy.visit('https://legalholdpt.consilio.com/Template')
+        cy.wait(5000)
+        templatePage.getCreateTemplateButton().click()
+    })
+});
 

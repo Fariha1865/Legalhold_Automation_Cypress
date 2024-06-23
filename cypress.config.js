@@ -10,9 +10,11 @@ module.exports = defineConfig({
     specPattern: 'cypress/integration/examples/*.js',
     experimentalSessionAndOrigin: true,
     preserveCookies: true,
-    pageLoadTimeout: 12000,
+    pageLoadTimeout: 10000,
     baseUrl: 'https://legalholdpt.consilio.com/Case',
-    testIsolation:false
+    testIsolation:false,
+    defaultCommandTimeout:8000,
+
 
   },
   

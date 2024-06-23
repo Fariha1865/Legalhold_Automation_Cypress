@@ -1,63 +1,69 @@
-// ***********************************************
-import selectors from "./selectors/LoginSelectors.js";
-import values from "../support/Values.js";
-import impersonationSelectors from "./selectors/impersonation/Impersonation.js";
-import sharedSelectors from "./selectors/shared/SharedSelectors.js";
+/// <reference types="cypress"/>
 
-// providing username and password to login(with handling active sessions
-Cypress.Commands.add('login', () => {
+import LoginPage from "../integration/PageObjects/LoginSelectors.js";
+import Impersonation from "../integration/PageObjects/Impersonation.js";
+import SharedSelectors from "../integration/PageObjects/SharedSelectors.js";
+
+// Providing username and password to login (with handling active sessions)
+Cypress.Commands.add('login', (values) => {
+    const loginPage = new LoginPage();
+
+    function insertLoginCredentials() {
+        loginPage.getLoginUsername().type(values.login_username);
+        loginPage.getLoginPassword().type(values.login_password);
+        loginPage.getLoginButton().click({ force: true });
+    }
 
     cy.visit("https://sightlinept1.consilio.com");
-    cy.wait(2000);
-    cy.get(selectors.loginUsername).type(values.login_username);
-    cy.get(selectors.loginPassword).type(values.login_password);
-    cy.get(selectors.loginButton).click({ force: true });
+    insertLoginCredentials();
 
     // Checking for the presence of the active session toast
     cy.get('body').then($body => {
         Cypress.on('uncaught:exception', (err, runnable) => {
-            // Ignore the error and don't fail the test
+         
             if (err.message.includes("Cannot read properties of null (reading 'style')")) {
-              return false;
+                return false;
             }
-            // Let other errors fail the test
+           
             return true;
-          });
-          
-        if ($body.find(selectors.activeSessionToast).length > 0) {
+        });
 
-            cy.get(selectors.activeSessionToast).should('be.visible').then(() => {
-                cy.get(selectors.activeSessionYesBtn).click();
-                cy.wait(2000);
-                cy.get(selectors.loginUsername).clear().type(values.login_username);
-                cy.get(selectors.loginPassword).clear().type(values.login_password);
-                cy.get(selectors.loginButton).click({ force: true });
-            });
-        } else {
-            cy.log("No active sessions, logged in successfully");
-        }
+        const activeSessionToast = $body.find(loginPage.getActiveSessionToast());
+        cy.wrap(activeSessionToast).then($toast => {
+            if ($toast.length > 0) {
+                cy.wrap(activeSessionToast).should('be.visible').then(() => {
+                    loginPage.getActiveSessionYesBtn().click();
+                    cy.wait(2000);
+                    insertLoginCredentials();
+                });
+            } else {
+                cy.log("No active sessions, logged in successfully");
+            }
+        });
     });
-      
+});
 
-})
+Cypress.Commands.add('navigateToLegalHold', (values) => {
+    const loginPage = new LoginPage();
+    const impersonation = new Impersonation();
+    const sharedSelectors = new SharedSelectors()
 
-Cypress.Commands.add('navigateToLegalHold', () => {
-    cy.get(selectors.userSelectorIcon).click();
-    cy.get(selectors.userSelectorDropdown).find(selectors.userSelectorOptions).each(($el) => {
+    loginPage.getUserSelectorIcon().click();
+    loginPage.getUserSelectorDropdown().find(loginPage.getUserSelectorOptions()).each(($el) => {
         if ($el.text() === values.impersonationOptionText) {
             cy.wrap($el).click();
         }
     });
+
     cy.wait(2000);
-    cy.get(impersonationSelectors.impersonationAvailableRoles).select(values.impersonationRole);
-    cy.get(impersonationSelectors.impersonationAvailableDomains).select(values.impersonationDomain);
-    cy.get(sharedSelectors.submitButton).contains('Save').click();
+    impersonation.getImpersonationAvailableRoles().select(values.impersonationRole);
+    impersonation.getImpersonationAvailableDomains().select(values.impersonationDomain);
+
+    sharedSelectors.getSubmitButton().contains('Save').click();
     cy.wait(2000);
-    cy.get(selectors.projectSelectorDropdown).should('have.text', values.selectedProjectName);
-    cy.get(selectors.switchProjectIcon).click();
-    cy.get(selectors.legalHoldIcon).click();
+    loginPage.getProjectSelectorDropdown().should('have.text', values.selectedProjectName);
+    loginPage.getSwitchProjectIcon().click();
+    loginPage.getLegalHoldIcon().click();
     cy.wait(3000);
     cy.url().should('include', values.legalHoldLandingPageUrl);
 });
-
-
